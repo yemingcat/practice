@@ -1,0 +1,34 @@
+# Node / pnpm
+node_modules/
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Build outputs
+apps/frontend/dist/
+
+# Local uploads / artifacts
+apps/api/uploads/
+tests/test-results/
+tests/playwright-report/
+coverage/
+
+# Env files
+.env
+**/.env
+apps/api/.env
+apps/api/prisma/.env
+tests/.env
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Dev env & vendor
+.trae/
+vendor/
