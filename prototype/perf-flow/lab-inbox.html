@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>实验室工作台</title>
+<link rel="stylesheet" href="styles.css">
+<header>
+  <div class="brand">实验室工作台</div>
+  <nav>
+    <a href="index.html">首页</a>
+    <a class="active" href="lab-inbox.html">实验室工作台</a>
+    <a href="unit-inbox.html">二级单位审核</a>
+    <a href="review-unit.html">审核面板</a>
+    <a href="reports.html">汇总报表</a>
+  </nav>
+</header>
+<div class="container">
+  <div class="toolbar">
+    <a class="btn" href="match-dialog.html">从库匹配</a>
+    <a class="btn ghost" href="fill-form.html">新建填报</a>
+    <select>
+      <option>全部类型</option>
+      <option>论文</option>
+      <option>专利</option>
+      <option>获奖</option>
+    </select>
+    <input placeholder="搜索名称/编号">
+  </div>
+  <table class="table">
+    <tr><th>名称</th><th>类型</th><th>状态</th><th>截止</th><th>操作</th></tr>
+    <tr>
+      <td>高性能材料研究</td>
+      <td>论文</td>
+      <td><span class="badge gray">待匹配</span></td>
+      <td>3天</td>
+      <td><a class="btn" href="match-dialog.html">匹配</a></td>
+    </tr>
+    <tr>
+      <td>XXX发明专利</td>
+      <td>专利</td>
+      <td><span class="badge orange">待提交</span></td>
+      <td>5天</td>
+      <td><a class="btn" href="fill-form.html">继续填报</a></td>
+    </tr>
+    <tr>
+      <td>省级科技进步奖</td>
+      <td>获奖</td>
+      <td><span class="badge blue">已匹配</span></td>
+      <td>7天</td>
+      <td><a class="btn secondary" href="fill-form.html">完善信息</a></td>
+    </tr>
+  </table>
+  <div class="footer">操作完成后提交初审，二级单位审核通过后将锁定。</div>
+  </div>
+</html>

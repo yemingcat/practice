@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>成果匹配</title>
+<link rel="stylesheet" href="styles.css">
+<header>
+  <div class="brand">成果匹配</div>
+  <nav>
+    <a href="index.html">首页</a>
+    <a class="active" href="match-dialog.html">成果匹配</a>
+    <a href="lab-inbox.html">实验室工作台</a>
+  </nav>
+</header>
+<div class="container">
+  <div class="toolbar">
+    <input placeholder="在库中搜索：名称/编号/DOI/专利号">
+    <button class="btn">搜索</button>
+  </div>
+  <table class="table">
+    <tr><th>名称</th><th>类型</th><th>编号/DOI</th><th>相似度</th><th>操作</th></tr>
+    <tr>
+      <td>高性能材料研究</td><td>论文</td><td>10.1234/abc</td><td>92%</td>
+      <td><a class="btn" href="fill-form.html">选择并进入填报</a></td>
+    </tr>
+    <tr>
+      <td>XXX发明专利</td><td>专利</td><td>CNxxxxxxxx</td><td>88%</td>
+      <td><a class="btn" href="fill-form.html">选择并进入填报</a></td>
+    </tr>
+  </table>
+  <div class="footer">若无匹配结果，可返回新建填报。</div>
+</div>
+</html>

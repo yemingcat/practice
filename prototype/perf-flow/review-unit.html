@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>审核面板</title>
+<link rel="stylesheet" href="styles.css">
+<header>
+  <div class="brand">审核面板</div>
+  <nav>
+    <a href="index.html">首页</a>
+    <a href="lab-inbox.html">实验室工作台</a>
+    <a href="unit-inbox.html">二级单位审核</a>
+    <a class="active" href="review-unit.html">审核面板</a>
+    <a href="reports.html">汇总报表</a>
+  </nav>
+</header>
+<div class="container">
+  <div class="grid cols-2">
+    <div class="card">
+      <h3>填报摘要</h3>
+      <div class="meta">类型：专利</div>
+      <div class="meta">名称：XXX发明专利</div>
+      <div class="meta">编号：CNxxxxxxxx</div>
+      <div class="meta">负责人：张三</div>
+      <div class="meta">贡献：张三40%，李四30%，王五30%</div>
+    </div>
+    <div class="card">
+      <h3>校验结果</h3>
+      <div class="list">
+        <div>唯一编号去重：通过</div>
+        <div>附件完整性：通过</div>
+        <div>贡献比例合计：通过</div>
+        <div>口径匹配：通过</div>
+      </div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <h3>审核意见</h3>
+    <div class="field">
+      <label>结论</label>
+      <select>
+        <option>通过</option>
+        <option>退回修改</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>意见</label>
+      <textarea rows="4" placeholder="请补充授权通知书盖章页"></textarea>
+    </div>
+    <div class="toolbar">
+      <a class="btn" href="unit-inbox.html">提交审核结论</a>
+      <a class="btn ghost" href="unit-inbox.html">取消</a>
+    </div>
+  </div>
+</div>
+</html>

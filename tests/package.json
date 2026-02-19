@@ -1,0 +1,17 @@
+{
+  "name": "test-suite",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:api": "vitest run api --reporter=basic",
+    "test:e2e": "playwright test e2e --reporter=list",
+    "test": "npm run test:api && npm run test:e2e"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.44.0",
+    "axios": "^1.6.7",
+    "vitest": "^1.5.0",
+    "dotenv": "^16.4.5",
+    "@types/node": "^20.11.0"
+  }
+}

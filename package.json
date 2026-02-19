@@ -1,0 +1,17 @@
+{
+  "name": "perf-reporting-monorepo",
+  "private": true,
+  "packageManager": "pnpm@8.15.4",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "pnpm -r run build",
+    "dev": "pnpm --filter ./apps/frontend dev",
+    "lint": "pnpm -r run lint",
+    "test": "pnpm -r run test",
+    "test:api": "pnpm --filter ./tests run test:api",
+    "test:e2e": "pnpm --filter ./tests run test:e2e"
+  }
+}

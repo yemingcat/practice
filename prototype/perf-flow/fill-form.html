@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>成果填报表单</title>
+<link rel="stylesheet" href="styles.css">
+<header>
+  <div class="brand">成果填报</div>
+  <nav>
+    <a href="index.html">首页</a>
+    <a href="lab-inbox.html">实验室工作台</a>
+    <a href="unit-inbox.html">二级单位审核</a>
+    <a href="review-unit.html">审核面板</a>
+    <a href="reports.html">汇总报表</a>
+  </nav>
+</header>
+<div class="container">
+  <div class="card">
+    <h3>基本信息</h3>
+    <div class="grid cols-2">
+      <div class="field">
+        <label>成果类型</label>
+        <select>
+          <option>论文</option>
+          <option>专利</option>
+          <option>获奖</option>
+          <option>软件著作权</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>成果名称</label>
+        <input placeholder="例如：高性能材料研究">
+      </div>
+      <div class="field">
+        <label>唯一编号/DOI/专利号</label>
+        <input placeholder="10.xxxx/xxxx 或 CNxxxxxxxx">
+        <div class="field-help">用于去重校验</div>
+      </div>
+      <div class="field">
+        <label>完成/授权日期</label>
+        <input type="date">
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>归属与贡献</h3>
+    <div class="grid cols-2">
+      <div class="field">
+        <label>二级单位</label>
+        <input placeholder="自动带出/选择">
+      </div>
+      <div class="field">
+        <label>实验室</label>
+        <input placeholder="选择实验室">
+      </div>
+      <div class="field">
+        <label>负责人</label>
+        <input placeholder="姓名/工号">
+      </div>
+      <div class="field">
+        <label>参与人及贡献比例</label>
+        <textarea rows="3" placeholder="张三 40%，李四 30%，王五 30%"></textarea>
+        <div class="field-help">合计需为100%</div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>指标与佐证</h3>
+    <div class="grid cols-2">
+      <div class="field">
+        <label>分值/权重</label>
+        <input placeholder="系统自动计算，手动可见只读">
+      </div>
+      <div class="field">
+        <label>类别/等级</label>
+        <select>
+          <option>A</option><option>B</option><option>C</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>附件清单</label>
+        <input placeholder="授权通知书/期刊首页/证书扫描件">
+      </div>
+      <div class="field">
+        <label>外部链接/数据库编号</label>
+        <input placeholder="链接或编号">
+      </div>
+    </div>
+  </div>
+  <div class="toolbar">
+    <a class="btn" href="unit-inbox.html">提交初审</a>
+    <a class="btn ghost" href="lab-inbox.html">保存草稿</a>
+  </div>
+</div>
+</html>

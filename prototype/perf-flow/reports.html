@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>汇总报表</title>
+<link rel="stylesheet" href="styles.css">
+<header>
+  <div class="brand">汇总报表</div>
+  <nav>
+    <a href="index.html">首页</a>
+    <a href="lab-inbox.html">实验室工作台</a>
+    <a href="unit-inbox.html">二级单位审核</a>
+    <a href="review-unit.html">审核面板</a>
+    <a class="active" href="reports.html">汇总报表</a>
+  </nav>
+</header>
+<div class="container">
+  <div class="kpi">
+    <div class="item"><div class="label">总成果数</div><div class="value">152</div></div>
+    <div class="item"><div class="label">通过率</div><div class="value">94%</div></div>
+    <div class="item"><div class="label">退回率</div><div class="value">6%</div></div>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <h3>按类型统计</h3>
+    <table class="table">
+      <tr><th>类型</th><th>数量</th><th>通过</th><th>退回</th></tr>
+      <tr><td>论文</td><td>68</td><td>64</td><td>4</td></tr>
+      <tr><td>专利</td><td>43</td><td>39</td><td>4</td></tr>
+      <tr><td>获奖</td><td>21</td><td>20</td><td>1</td></tr>
+      <tr><td>软著</td><td>20</td><td>20</td><td>0</td></tr>
+    </table>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <h3>下载</h3>
+    <div class="list">
+      <a class="btn" href="#">导出XLSX</a>
+      <a class="btn ghost" href="#">导出PDF</a>
+    </div>
+  </div>
+</div>
+</html>

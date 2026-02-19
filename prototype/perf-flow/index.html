@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>绩效成果填报原型</title>
+<link rel="stylesheet" href="styles.css">
+<header>
+  <div class="brand">绩效成果填报原型</div>
+  <nav>
+    <a class="active" href="index.html">首页</a>
+    <a href="lab-inbox.html">实验室工作台</a>
+    <a href="unit-inbox.html">二级单位审核</a>
+    <a href="review-unit.html">审核面板</a>
+    <a href="reports.html">汇总报表</a>
+  </nav>
+</header>
+<div class="container">
+  <div class="kpi">
+    <div class="item">
+      <div class="label">本周期任务</div>
+      <div class="value">8</div>
+      <div class="meta">主管部门已发布</div>
+    </div>
+    <div class="item">
+      <div class="label">待填报</div>
+      <div class="value">27</div>
+      <div class="meta">3日内截止 12</div>
+    </div>
+    <div class="item">
+      <div class="label">待审核</div>
+      <div class="value">14</div>
+      <div class="meta">退回率 6%</div>
+    </div>
+  </div>
+  <div class="grid cols-2" style="margin-top:12px">
+    <div class="card">
+      <h3>选择角色与典型路径</h3>
+      <div class="list">
+        <a class="btn" href="lab-inbox.html">实验室负责人：匹配→填报→提交</a>
+        <a class="btn secondary" href="unit-inbox.html">二级单位管理员：分发→审核→汇总</a>
+        <a class="btn ghost" href="review-unit.html">专项复核：知识产权/人事复核</a>
+      </div>
+    </div>
+    <div class="card">
+      <h3>流程概览</h3>
+      <table class="table">
+        <tr><th>阶段</th><th>状态</th><th>动作</th></tr>
+        <tr><td>任务下发</td><td><span class="badge blue">已发布</span></td><td>查看口径与模板</td></tr>
+        <tr><td>成果匹配</td><td><span class="badge gray">待匹配</span></td><td>从库匹配或新建</td></tr>
+        <tr><td>信息填报</td><td><span class="badge orange">待提交</span></td><td>完善字段与附件</td></tr>
+        <tr><td>单位初审</td><td><span class="badge orange">审核中</span></td><td>通过/退回</td></tr>
+        <tr><td>专项复核</td><td><span class="badge gray">可选</span></td><td>知识产权/人才</td></tr>
+        <tr><td>终审汇总</td><td><span class="badge green">完成</span></td><td>锁定归档</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="footer">本原型为低保真演示，用于展示信息架构与关键交互。</div>
+</div>
+</html>

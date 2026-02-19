@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Result {
+  id          String   @id @default(cuid())
+  type        String
+  title       String
+  unique_no   String?
+  date        DateTime?
+  status      String   @default("draft")
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  reviews     Review[]
+  attachments Attachment[]
+
+  @@index([status, created_at])
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  result_id  String
+  stage      String   // unit | final
+  decision   String   @default("pending") // pending | approved | rejected
+  comment    String?
+  created_at DateTime @default(now())
+  result     Result   @relation(fields: [result_id], references: [id], onDelete: Cascade)
+
+  @@index([result_id, stage])
+  @@unique([result_id, stage])
+}
+
+model Attachment {
+  id          String   @id @default(cuid())
+  result_id   String
+  file_name   String
+  file_path   String
+  mime_type   String
+  size        Int
+  uploaded_by String
+  created_at  DateTime @default(now())
+  result      Result   @relation(fields: [result_id], references: [id], onDelete: Cascade)
+
+  @@index([result_id])
+  @@index([result_id, created_at])
+}
+

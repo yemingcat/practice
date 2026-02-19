@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>二级单位审核</title>
+<link rel="stylesheet" href="styles.css">
+<header>
+  <div class="brand">二级单位审核</div>
+  <nav>
+    <a href="index.html">首页</a>
+    <a href="lab-inbox.html">实验室工作台</a>
+    <a class="active" href="unit-inbox.html">二级单位审核</a>
+    <a href="review-unit.html">审核面板</a>
+    <a href="reports.html">汇总报表</a>
+  </nav>
+</header>
+<div class="container">
+  <div class="toolbar">
+    <button class="btn">批量通过</button>
+    <button class="btn ghost">批量退回</button>
+    <select><option>全部状态</option><option>待审核</option><option>退回</option><option>通过</option></select>
+    <input placeholder="搜索名称/负责人/编号">
+  </div>
+  <table class="table">
+    <tr><th>名称</th><th>类型</th><th>实验室</th><th>负责人</th><th>状态</th><th>操作</th></tr>
+    <tr>
+      <td>XXX发明专利</td><td>专利</td><td>材料实验室</td><td>张三</td>
+      <td><span class="badge orange">待审核</span></td>
+      <td><a class="btn" href="review-unit.html">审核</a></td>
+    </tr>
+    <tr>
+      <td>高性能材料研究</td><td>论文</td><td>材料实验室</td><td>李四</td>
+      <td><span class="badge red">退回</span></td>
+      <td><a class="btn secondary" href="review-unit.html">查看原因</a></td>
+    </tr>
+    <tr>
+      <td>省级科技进步奖</td><td>获奖</td><td>材料实验室</td><td>王五</td>
+      <td><span class="badge green">通过</span></td>
+      <td><a class="btn ghost" href="review-unit.html">详情</a></td>
+    </tr>
+  </table>
+  <div class="footer">通过后流转至专项复核或终审汇总。</div>
+</div>
+</html>
