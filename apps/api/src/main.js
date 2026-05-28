@@ -1,5 +1,7 @@
 import express from 'express'
 import cors from 'cors'
+import helmet from 'helmet'
+import rateLimit from 'express-rate-limit'
 import morgan from 'morgan'
 import { PrismaClient } from '@prisma/client'
 import multer from 'multer'
@@ -8,9 +10,27 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 
 const app = express()
-app.use(cors())
+
+app.use(helmet())
+
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',')
+  : []
+app.use(cors({
+  origin: allowedOrigins.length > 0 ? allowedOrigins : false,
+  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id']
+}))
+
+app.use(rateLimit({
+  windowMs: 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false
+}))
+
 app.use(express.json({ limit: '2mb' }))
-app.use(morgan('dev'))
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'))
 
 app.get('/health', (_, res) => res.json({ status: 'ok' }))
 app.get('/healthz', async (req, res) => {
@@ -35,6 +55,7 @@ app.use('/static', express.static(uploadRoot))
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const id = req.params.id
+    if (!/^[a-zA-Z0-9_-]+$/.test(id)) return cb(new Error('INVALID_ID'))
     const dir = path.join(uploadRoot, id)
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
     cb(null, dir)
@@ -88,7 +109,16 @@ v1.post('/results', async (req, res) => {
 })
 v1.patch('/results/:id', async (req, res) => {
   try {
-    const r = await prisma.result.update({ where: { id: req.params.id }, data: req.body || {} })
+    const allowed = ['type', 'title', 'unique_no', 'date']
+    const data = {}
+    for (const key of allowed) {
+      if (req.body && req.body[key] !== undefined) data[key] = req.body[key]
+    }
+    if (Object.keys(data).length === 0) {
+      return res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: 'no valid fields to update' } })
+    }
+    if (data.date) data.date = new Date(data.date)
+    const r = await prisma.result.update({ where: { id: req.params.id }, data })
     res.json(r)
   } catch {
     res.status(404).json({ error: { code: 'NOT_FOUND', message: 'result not found' } })
@@ -155,6 +185,17 @@ v1.get('/reviews', async (req, res) => {
 })
 v1.post('/reviews', async (req, res) => {
   const { result_id, stage, decision, comment } = req.body || {}
+  const validDecisions = ['approved', 'rejected', 'pending']
+  const validStages = ['unit', 'final']
+  if (!result_id || !stage || !decision) {
+    return res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: 'result_id, stage, and decision are required' } })
+  }
+  if (!validDecisions.includes(decision)) {
+    return res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: `decision must be one of: ${validDecisions.join(', ')}` } })
+  }
+  if (!validStages.includes(stage)) {
+    return res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: `stage must be one of: ${validStages.join(', ')}` } })
+  }
   try {
     await prisma.review.updateMany({ where: { result_id, stage }, data: { decision, comment: comment || null } })
     if (decision === 'approved') {
@@ -175,6 +216,7 @@ v1.post('/reviews', async (req, res) => {
 })
 v1.get('/results/:id/attachments', async (req, res) => {
   const id = req.params.id
+  if (!/^[a-zA-Z0-9_-]+$/.test(id)) return res.status(400).json({ error: { code: 'INVALID_ID', message: 'invalid id' } })
   const atts = await prisma.attachment.findMany({ where: { result_id: id }, orderBy: { created_at: 'desc' } })
   const items = atts.map(a => ({
     id: a.id,
@@ -189,6 +231,7 @@ v1.get('/results/:id/attachments', async (req, res) => {
 })
 v1.post('/results/:id/attachments', upload.array('files', 10), async (req, res) => {
   const id = req.params.id
+  if (!/^[a-zA-Z0-9_-]+$/.test(id)) return res.status(400).json({ error: { code: 'INVALID_ID', message: 'invalid id' } })
   const r = await prisma.result.findUnique({ where: { id } })
   if (!r) return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'result not found' } })
   // 最近一次审核需为退回
