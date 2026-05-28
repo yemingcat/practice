@@ -61,37 +61,77 @@ v1.use((req, res, next) => {
 })
 
 v1.get('/results', async (req, res) => {
-  const status = req.query.status
-  const limit = Math.min(Number(req.query.limit) || 20, 100)
-  const cursor = req.query.cursor ? String(req.query.cursor) : undefined
-  const data = await prisma.result.findMany({
-    where: status ? { status: String(status) } : undefined,
-    take: limit,
-    ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
-    orderBy: { id: 'desc' }
-  })
-  const next_cursor = data.length === limit ? data[data.length - 1].id : null
-  res.json({ data, pagination: { next_cursor, has_more: !!next_cursor, limit } })
+  try {
+    const status = req.query.status
+    const limit = Math.min(Number(req.query.limit) || 20, 100)
+    const cursor = req.query.cursor ? String(req.query.cursor) : undefined
+    const data = await prisma.result.findMany({
+      where: status ? { status: String(status) } : undefined,
+      take: limit,
+      ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+      orderBy: { id: 'desc' }
+    })
+    const next_cursor = data.length === limit ? data[data.length - 1].id : null
+    res.json({ data, pagination: { next_cursor, has_more: !!next_cursor, limit } })
+  } catch {
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'failed to fetch results' } })
+  }
 })
 v1.get('/results/:id', async (req, res) => {
-  const r = await prisma.result.findUnique({ where: { id: req.params.id } })
-  if (!r) return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'result not found' } })
-  res.json(r)
+  try {
+    const r = await prisma.result.findUnique({ where: { id: req.params.id } })
+    if (!r) return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'result not found' } })
+    res.json(r)
+  } catch {
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'failed to fetch result' } })
+  }
 })
 v1.post('/results', async (req, res) => {
-  const { type, title, unique_no, date } = req.body || {}
-  if (!type || !title) return res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: 'type/title required' } })
-  const r = await prisma.result.create({
-    data: { type, title, unique_no: unique_no || null, date: date ? new Date(date) : null, status: 'draft' }
-  })
-  res.status(201).json(r)
+  try {
+    const { type, title, unique_no, date } = req.body || {}
+    if (!type || !title) return res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: 'type/title required' } })
+    if (typeof type !== 'string' || typeof title !== 'string') {
+      return res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: 'type and title must be strings' } })
+    }
+    let parsedDate = null
+    if (date) {
+      parsedDate = new Date(date)
+      if (isNaN(parsedDate.getTime())) {
+        return res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: 'invalid date format' } })
+      }
+    }
+    const r = await prisma.result.create({
+      data: { type, title, unique_no: unique_no || null, date: parsedDate, status: 'draft' }
+    })
+    res.status(201).json(r)
+  } catch {
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'failed to create result' } })
+  }
 })
 v1.patch('/results/:id', async (req, res) => {
   try {
-    const r = await prisma.result.update({ where: { id: req.params.id }, data: req.body || {} })
+    const body = req.body || {}
+    const allowed = ['type', 'title', 'unique_no', 'date', 'status']
+    const data = {}
+    for (const key of allowed) {
+      if (key in body) data[key] = body[key]
+    }
+    if (Object.keys(data).length === 0) {
+      return res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: 'no valid fields to update' } })
+    }
+    if (data.date) {
+      const d = new Date(data.date)
+      if (isNaN(d.getTime())) {
+        return res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: 'invalid date format' } })
+      }
+      data.date = d
+    }
+    const existing = await prisma.result.findUnique({ where: { id: req.params.id } })
+    if (!existing) return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'result not found' } })
+    const r = await prisma.result.update({ where: { id: req.params.id }, data })
     res.json(r)
   } catch {
-    res.status(404).json({ error: { code: 'NOT_FOUND', message: 'result not found' } })
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'failed to update result' } })
   }
 })
 v1.post('/results/:id/submit', async (req, res) => {
@@ -115,47 +155,72 @@ v1.post('/results/:id/submit', async (req, res) => {
   }
 })
 v1.get('/reports/summary', async (req, res) => {
-  const all = await prisma.result.findMany({ select: { type: true } })
-  const map = all.reduce((acc, r) => {
-    acc[r.type] = (acc[r.type] || 0) + 1
-    return acc
-  }, {})
-  res.json({ type: Object.entries(map).map(([name, count]) => ({ name, count })) })
+  try {
+    const all = await prisma.result.findMany({ select: { type: true } })
+    const map = all.reduce((acc, r) => {
+      acc[r.type] = (acc[r.type] || 0) + 1
+      return acc
+    }, {})
+    res.json({ type: Object.entries(map).map(([name, count]) => ({ name, count })) })
+  } catch {
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'failed to fetch summary' } })
+  }
 })
 v1.get('/reviews', async (req, res) => {
-  const stage = String(req.query.stage || 'unit')
-  const status = String(req.query.status || 'pending') // pending/rejected/approved/all
-  const limit = Math.min(Number(req.query.limit) || 20, 100)
-  const cursor = req.query.cursor ? String(req.query.cursor) : undefined
-  const where = {
-    stage,
-    ...(status === 'pending' ? { decision: 'pending' } :
-      status === 'rejected' ? { decision: 'rejected' } :
-      status === 'approved' ? { decision: 'approved' } : {})
+  try {
+    const stage = String(req.query.stage || 'unit')
+    if (!['unit', 'final'].includes(stage)) {
+      return res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: 'stage must be unit or final' } })
+    }
+    const status = String(req.query.status || 'pending')
+    if (!['pending', 'rejected', 'approved', 'all'].includes(status)) {
+      return res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: 'status must be pending, rejected, approved, or all' } })
+    }
+    const limit = Math.min(Number(req.query.limit) || 20, 100)
+    const cursor = req.query.cursor ? String(req.query.cursor) : undefined
+    const where = {
+      stage,
+      ...(status === 'pending' ? { decision: 'pending' } :
+        status === 'rejected' ? { decision: 'rejected' } :
+        status === 'approved' ? { decision: 'approved' } : {})
+    }
+    const reviews = await prisma.review.findMany({
+      where,
+      take: limit,
+      ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+      include: { result: true },
+      orderBy: { id: 'desc' }
+    })
+    const next_cursor = reviews.length === limit ? reviews[reviews.length - 1].id : null
+    const data = reviews.map(rv => ({
+      id: rv.id,
+      result_id: rv.result_id,
+      stage: rv.stage,
+      decision: rv.decision,
+      name: rv.result?.title || '',
+      type: rv.result?.type || '',
+      lab: '材料实验室',
+      owner: '张三'
+    }))
+    res.json({ data, pagination: { next_cursor, has_more: !!next_cursor, limit } })
+  } catch {
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'failed to fetch reviews' } })
   }
-  const reviews = await prisma.review.findMany({
-    where,
-    take: limit,
-    ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
-    include: { result: true },
-    orderBy: { id: 'desc' }
-  })
-  const next_cursor = reviews.length === limit ? reviews[reviews.length - 1].id : null
-  const data = reviews.map(rv => ({
-    id: rv.id,
-    result_id: rv.result_id,
-    stage: rv.stage,
-    decision: rv.decision,
-    name: rv.result?.title || '',
-    type: rv.result?.type || '',
-    lab: '材料实验室',
-    owner: '张三'
-  }))
-  res.json({ data, pagination: { next_cursor, has_more: !!next_cursor, limit } })
 })
 v1.post('/reviews', async (req, res) => {
   const { result_id, stage, decision, comment } = req.body || {}
+  if (!result_id || !stage || !decision) {
+    return res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: 'result_id, stage, and decision are required' } })
+  }
+  if (!['unit', 'final'].includes(stage)) {
+    return res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: 'stage must be unit or final' } })
+  }
+  if (!['approved', 'rejected'].includes(decision)) {
+    return res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: 'decision must be approved or rejected' } })
+  }
   try {
+    const existing = await prisma.review.findFirst({ where: { result_id, stage } })
+    if (!existing) return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'review not found' } })
     await prisma.review.updateMany({ where: { result_id, stage }, data: { decision, comment: comment || null } })
     if (decision === 'approved') {
       if (stage === 'unit') {
@@ -170,59 +235,80 @@ v1.post('/reviews', async (req, res) => {
     }
     res.json({ ok: true })
   } catch {
-    res.status(404).json({ error: { code: 'NOT_FOUND', message: 'review not found' } })
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'failed to update review' } })
   }
 })
 v1.get('/results/:id/attachments', async (req, res) => {
-  const id = req.params.id
-  const atts = await prisma.attachment.findMany({ where: { result_id: id }, orderBy: { created_at: 'desc' } })
-  const items = atts.map(a => ({
-    id: a.id,
-    file_name: a.file_name,
-    mime_type: a.mime_type,
-    size: a.size,
-    url: `/static/${id}/${a.file_path}`,
-    download_url: `/api/v1/attachments/${a.id}/download`,
-    created_at: a.created_at
-  }))
-  res.json({ data: items })
+  try {
+    const id = req.params.id
+    const result = await prisma.result.findUnique({ where: { id } })
+    if (!result) return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'result not found' } })
+    const atts = await prisma.attachment.findMany({ where: { result_id: id }, orderBy: { created_at: 'desc' } })
+    const items = atts.map(a => ({
+      id: a.id,
+      file_name: a.file_name,
+      mime_type: a.mime_type,
+      size: a.size,
+      url: `/static/${id}/${a.file_path}`,
+      download_url: `/api/v1/attachments/${a.id}/download`,
+      created_at: a.created_at
+    }))
+    res.json({ data: items })
+  } catch {
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'failed to fetch attachments' } })
+  }
 })
 v1.post('/results/:id/attachments', upload.array('files', 10), async (req, res) => {
-  const id = req.params.id
-  const r = await prisma.result.findUnique({ where: { id } })
-  if (!r) return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'result not found' } })
-  // 最近一次审核需为退回
-  const last = await prisma.review.findFirst({ where: { result_id: id }, orderBy: { created_at: 'desc' } })
-  if (last?.decision !== 'rejected' || r.status !== 'rejected') {
-    return res.status(409).json({ error: { code: 'STATE_INVALID', message: '仅退回记录允许上传补充材料' } })
+  try {
+    const id = req.params.id
+    const r = await prisma.result.findUnique({ where: { id } })
+    if (!r) return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'result not found' } })
+    // 最近一次审核需为退回
+    const last = await prisma.review.findFirst({ where: { result_id: id }, orderBy: { created_at: 'desc' } })
+    if (last?.decision !== 'rejected' || r.status !== 'rejected') {
+      return res.status(409).json({ error: { code: 'STATE_INVALID', message: '仅退回记录允许上传补充材料' } })
+    }
+    const files = req.files || []
+    if (files.length === 0) {
+      return res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: 'at least one file is required' } })
+    }
+    const created = []
+    for (const f of files) {
+      const rec = await prisma.attachment.create({
+        data: { result_id: id, file_name: f.originalname, file_path: f.filename, mime_type: f.mimetype, size: f.size, uploaded_by: 'unit' }
+      })
+      created.push({ id: rec.id, file_name: rec.file_name })
+    }
+    res.status(201).json({ data: created })
+  } catch {
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'failed to upload attachments' } })
   }
-  const files = req.files || []
-  const created = []
-  for (const f of files) {
-    const rec = await prisma.attachment.create({
-      data: { result_id: id, file_name: f.originalname, file_path: f.filename, mime_type: f.mimetype, size: f.size, uploaded_by: 'unit' }
-    })
-    created.push({ id: rec.id, file_name: rec.file_name })
-  }
-  res.status(201).json({ data: created })
 })
 v1.delete('/attachments/:id', async (req, res) => {
-  const att = await prisma.attachment.findUnique({ where: { id: req.params.id } })
-  if (!att) return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'attachment not found' } })
-  const filePath = path.join(uploadRoot, att.result_id, att.file_path)
-  try { if (fs.existsSync(filePath)) fs.unlinkSync(filePath) } catch {}
-  await prisma.attachment.delete({ where: { id: att.id } })
-  res.json({ ok: true })
+  try {
+    const att = await prisma.attachment.findUnique({ where: { id: req.params.id } })
+    if (!att) return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'attachment not found' } })
+    const filePath = path.join(uploadRoot, att.result_id, att.file_path)
+    try { if (fs.existsSync(filePath)) fs.unlinkSync(filePath) } catch {}
+    await prisma.attachment.delete({ where: { id: att.id } })
+    res.json({ ok: true })
+  } catch {
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'failed to delete attachment' } })
+  }
 })
 v1.get('/attachments/:id/download', async (req, res) => {
-  const att = await prisma.attachment.findUnique({ where: { id: req.params.id } })
-  if (!att) return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'attachment not found' } })
-  const filePath = path.join(uploadRoot, att.result_id, att.file_path)
-  if (!fs.existsSync(filePath)) return res.status(404).json({ error: { code: 'FILE_MISSING', message: 'file not found' } })
-  res.setHeader('Content-Type', att.mime_type || 'application/octet-stream')
-  const encoded = encodeURIComponent(att.file_name || att.file_path)
-  res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encoded}`)
-  fs.createReadStream(filePath).pipe(res)
+  try {
+    const att = await prisma.attachment.findUnique({ where: { id: req.params.id } })
+    if (!att) return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'attachment not found' } })
+    const filePath = path.join(uploadRoot, att.result_id, att.file_path)
+    if (!fs.existsSync(filePath)) return res.status(404).json({ error: { code: 'FILE_MISSING', message: 'file not found' } })
+    res.setHeader('Content-Type', att.mime_type || 'application/octet-stream')
+    const encoded = encodeURIComponent(att.file_name || att.file_path)
+    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encoded}`)
+    fs.createReadStream(filePath).pipe(res)
+  } catch {
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'failed to download attachment' } })
+  }
 })
 app.use('/api/v1', v1)
 // 上传错误处理
